@@ -16,21 +16,22 @@ const createVisitorTableSql = `
             substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' ||
             lower(hex(randomblob(6)))
         ),
-        fingerprint_hash TEXT NOT NULL,
         created_at TEXT NOT NULL,
-        first_seen_at TEXT NOT NULL,
+        fingerprint_hash TEXT NOT NULL,
         last_seen_at TEXT NOT NULL,
         visit_count INTEGER NOT NULL,
-        signal TEXT NOT NULL
+        segment TEXT NOT NULL DEFAULT 'default'
     );
 `;
 
+// create index for faster lookup by fingerprint hash
 const createVisitorFingerprintIndexSql = `
     CREATE INDEX IF NOT EXISTS idx_visitors_fingerprint_hash ON visitors (fingerprint_hash);
 `;
 
 // create visitor signals table if not exists
 // every new visit generates a new signal, but keeps visitor identity persistent
+// utm-reference docs: https://funnel.io/blog/google-analytics-utm-tagging
 // id is a UUIDv4
 // visitor_id is a FK to the visitors table (1:N)
 // utm_medium = "google"
@@ -45,9 +46,8 @@ const createVisitorSignalsTableSql = `
             substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' ||
             lower(hex(randomblob(6)))
         ),
-        created_by TEXT NOT NULL,
+        created_at TEXT NOT NULL,
         visitor_id TEXT NOT NULL REFERENCES visitors(id) ON DELETE CASCADE,
-        signal TEXT NOT NULL,
         utm_source TEXT,
         utm_medium TEXT,
         utm_campaign TEXT,
@@ -55,6 +55,7 @@ const createVisitorSignalsTableSql = `
         referrer_path TEXT,
         landing_path TEXT,
         user_agent TEXT,
+        language TEXT,
         raw_payload TEXT NOT NULL
     );
 `;
@@ -76,7 +77,7 @@ const createPersonalizationTableSql = `
             substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' ||
             lower(hex(randomblob(6)))
         ),
-        created_by TEXT NOT NULL,
+        created_at TEXT NOT NULL,
         visitor_id TEXT NOT NULL REFERENCES visitors(id) ON DELETE CASCADE,
         signal_id TEXT NOT NULL REFERENCES visitor_signals(id) ON DELETE CASCADE,
         variant_key TEXT NOT NULL,
@@ -119,10 +120,5 @@ export async function getDb(): Promise<Database.Database> {
     return db;
 }
 
-export function closeDatabase(): void {
-    if (db) {
-        db.close();
-        db = null;
-    }
-}
+
 export { db };

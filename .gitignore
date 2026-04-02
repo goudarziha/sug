@@ -38,3 +38,5 @@ Thumbs.db
 
 # sqlite database
 *.db    
+*.db-wal
+*.db-shm
