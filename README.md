@@ -20,7 +20,7 @@ Optional: copy `env.example` to `.env` and adjust values.
 | `PORT`         | `3000`    | HTTP port                      |
 | `DB_PATH`      | `./sug.db`| SQLite database file path      |
 | `API_VERSION`  | `v1`      | URL segment for `/api/{version}` |
-| `RULE_VERSION` | `v1.0`    | Rule / personalization version |
+| `RULE_VERSION` | `1.0`    | Rule / personalization version |
 
 ## Run
 
@@ -48,7 +48,6 @@ Base path uses `API_VERSION` (default **`v1`**): `/api/v1/...`
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET`  | `/` | Health / hello |
 | `GET`  | `/health` | Plain `OK` |
 | `POST` | `/api/v1/visitors/signals` | Submit a signal; resolves or creates visitor by fingerprint |
 | `GET`  | `/api/v1/visitors/:visitorId/personalization` | Personalization payload for a visitor |
@@ -96,3 +95,35 @@ Index: `idx_visitor_signals_visitor_id` on `visitor_id`.
 | `rule_version` | TEXT | Not null |
 
 Index: `idx_personalizations_visitor_id` on `visitor_id`.
+
+## Curl requests
+
+Replace `localhost:3000` if you use another `PORT`. Use a real `visitor_id` from the signals response for the GET example.
+
+**POST** `/api/v1/visitors/signals` — create/update visitor by fingerprint and record a signal:
+
+```bash
+curl -s -X POST "http://localhost:3000/api/v1/visitors/signals" \
+  -H "Content-Type: application/json" \
+  -d '{
+  "signal": {
+    "utm_source": "google"
+    "utm_campaign": "sports,pickleball",
+    "utm_medium": "ppc",
+    "referrer_domain": "google.com",
+    "referrer_path": "/query",
+    "landing_path": "/sports",
+    "language": "en"
+  }
+}'
+```
+
+curl request body can be updated to other data of your choosing (education, social, etc) see /src/utils/parser.util.ts for built out items
+
+**GET** `/api/v1/visitors/:visitorId/personalization` — personalization for an existing visitor:
+
+```bash
+curl -s "http://localhost:3000/api/v1/visitors/{VISITOR_ID}/personalization"
+```
+
+(Substitute `VISITOR_ID` with the `visitor_id` returned by the POST above.)

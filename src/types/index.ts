@@ -1,3 +1,4 @@
+// Visitor types
 export interface IVisitor {
     id: string
     fingerprint_hash: string
@@ -7,6 +8,7 @@ export interface IVisitor {
     segment?: TSegment
 }
 
+// Signal types
 export interface ISignal {
     fingerprint_hash?: string
     user_agent?: string
@@ -20,11 +22,13 @@ export interface ISignal {
     raw_payload?: string
 }
 
+// Signal row types
 export interface ISignalRow {
     visitor: IVisitor
     signal: ISignal
 }
 
+// Signal request types
 export interface ISignalRequest {
     utm_source?: string
     utm_medium?: string
@@ -37,6 +41,7 @@ export interface ISignalRequest {
     user_agent?: string
 }
 
+// Segment types
 export type TSegment =
     "paid-sports" |
     "paid-education" |

@@ -1,5 +1,7 @@
 import type { ISignal, TSegment } from "../types/index.js";
 
+// get segment for visitor based on the signal
+// can easily add more rules and details for more granular personalization in future
 export const getSegment = (signal: ISignal): string | null => {
     const { utm_medium, utm_campaign, landing_path, referrer_domain } = signal;
     if (utm_medium !== 'cpc' && utm_medium !== 'ppc') return null
@@ -19,6 +21,10 @@ export const getSegment = (signal: ISignal): string | null => {
     return 'direct-traffic'
 }
 
+// get personalization for visitor based on the segment
+// can easily add more personalization items and details for more granular personalization in future
+// hero is main data to give to frontend for rendering
+// more detailed data on the UI/XU can be added here, as well as more copy items
 export const getPersonalizationForVisitor = async (segment: TSegment | null) => {
     const personalizationItems = {
         'paid-sports': {

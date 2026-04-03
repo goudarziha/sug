@@ -5,6 +5,10 @@ import type { ISignal, IVisitor } from "../types/index.js";
 import { config } from "../config/index.js";
 
 
+// visitor db queries 
+// can be updated for more detailed tracking and analysis in future
+
+// lookup visitor by fingerprint hash
 export const fingerprintLookup = async (fingerprintHash: string) => {
     const db = await getDb();
     const visitor = db
@@ -13,6 +17,7 @@ export const fingerprintLookup = async (fingerprintHash: string) => {
     return visitor;
 };
 
+// create visitor, this is the main visitor row that will be unique per visitor, used to track visitor data
 export const createVisitor = async (fingerprintHash: string) => {
     const db = await getDb();
     const id = uuidv4();
@@ -29,6 +34,7 @@ export const createVisitor = async (fingerprintHash: string) => {
     return db.prepare("SELECT * FROM visitors WHERE id = ?").get(id);
 }
 
+// update visitor last seen at and visit count
 export const updateVisitor = async (visitorId: string) => {
     const db = await getDb();
     const row = db
@@ -43,6 +49,7 @@ export const updateVisitor = async (visitorId: string) => {
     return row;
 }
 
+// create visitor signal, this is the main signal that will be used to determine the variant key for the personalization
 export const createVisitorSignal = async (visitorId: string, signal: ISignal, userAgent: string) => {
     const db = await getDb();
     const {
@@ -52,9 +59,8 @@ export const createVisitorSignal = async (visitorId: string, signal: ISignal, us
         referrer_domain,
         referrer_path,
         landing_path,
-        raw_payload,
-        language,
-        user_agent } = signal;
+        language
+    } = signal;
     const row = db
         .prepare(
             `
@@ -73,12 +79,24 @@ export const createVisitorSignal = async (visitorId: string, signal: ISignal, us
             referrer_domain ?? null,
             referrer_path ?? null,
             landing_path ?? null,
-            user_agent ?? null,
+            userAgent ?? null,
             language ?? null,
-            JSON.stringify(raw_payload ?? {}));
+            JSON.stringify(signal ?? {}));
     return row;
 }
 
+// update visitor segment, default is 'default'
+// updates based on the most recent signal for a visitor
+// can be updated to use aggregate signals in future to see trends and patterns
+export const updateVisitorSegment = async (visitorId: string, segment: string) => {
+    const db = await getDb();
+    const row = db
+        .prepare("UPDATE visitors SET segment = ? WHERE id = ?")
+        .run(segment, visitorId);
+    return row;
+}
+
+// get visitor by id
 export const getVisitorByID = async (visitorId: string) => {
     const db = await getDb();
     const visitor = db
@@ -87,6 +105,8 @@ export const getVisitorByID = async (visitorId: string) => {
     return visitor;
 }
 
+// get the most recent signal for a visitor
+// this can be changed to get the aggregate signals for a visitor in future to see trends and patterns
 export const getVisitorSignalByID = async (visitorId: string) => {
     const db = await getDb();
     const signal = db
@@ -97,7 +117,7 @@ export const getVisitorSignalByID = async (visitorId: string) => {
 // / TODO:
 // can add more functions to get aggregate signals by visitor id
 
-
+// create personalization report for visitor, will determine the variant key to use for the personalization
 export const createPersonalizationForVisitor = async (visitor: IVisitor, signalId: string) => {
     const db = await getDb();
     const { id: visitorId, segment } = visitor;

@@ -3,11 +3,13 @@ import fs from "fs";
 import { config } from "../config/index.js";
 
 // Database schmea
+// Initialized db, tables, and indexes
+// returns db instance
 
 // create visitor table if not exists
 // id is a UUIDv4
 // fingerprint_hash is client-generated, unique identifier (user-agent, language, screen_resolution, timezone)
-// hash allows recognition of the same visitor w/o cookies
+// hash allows recognition of the same visitor w/o cookies, not perfect but adequate for our use case
 const createVisitorTableSql = `
     CREATE TABLE IF NOT EXISTS visitors (
         id TEXT PRIMARY KEY NOT NULL DEFAULT (
@@ -104,6 +106,7 @@ async function execSchema(database: Database.Database): Promise<void> {
 
 export async function getDb(): Promise<Database.Database> {
     if (!db) {
+        // create db file if it doesn't exist on initial startup
         if (config.dbPath.path && config.dbPath.path !== ":memory:") {
             if (!fs.existsSync(config.dbPath.path)) {
                 fs.writeFileSync(config.dbPath.path, "");
@@ -112,7 +115,7 @@ export async function getDb(): Promise<Database.Database> {
 
         db = new Database(config.dbPath.path);
         db.pragma("foreign_keys = ON");
-        //  https://www.sqlite.org/wal.html
+        //  https://www.sqlite.org/wal.html, WAL mode for better performance and concurrency
         db.pragma("journal_mode = WAL");
 
         await execSchema(db);

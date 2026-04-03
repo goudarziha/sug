@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import { hashFingerprint } from "../utils/hash.util.js";
 
+// Middleware to generate a fingerprint for the visitor based on the server and client data
 export function fingerprintMiddleware(req: Request, res: Response, next: NextFunction): void {
     const serverData = {
         userAgent: req.headers["user-agent"],

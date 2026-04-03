@@ -1,3 +1,5 @@
+// Configuration for the application
+
 export const config = {
     dbPath: {
         path: process.env.DB_PATH as string || "sug.db",
@@ -9,6 +11,6 @@ export const config = {
         version: process.env.API_VERSION as string || "v1",
     },
     ruleVersion: {
-        version: process.env.RULE_VERSION as string || "v1.0",
+        version: process.env.RULE_VERSION as string || "1.0",
     },
 } as const

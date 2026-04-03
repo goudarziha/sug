@@ -13,11 +13,13 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 });
 
 
-// middleware
+// middlewares
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+// fingerprint middleware to generate a fingerprint for the visitor based on the server and client data
 app.use(fingerprintMiddleware);
+// simple logging middleware
 app.use((req: Request, res: Response, next: NextFunction) => {
     console.log(`INFO: ${new Date().toISOString()} ${req.method} ${req.url}`);
     next();
@@ -25,10 +27,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 // routes
 
-app.get("/", (req: Request, res: Response) => {
-    res.send("Hello World");
-});
-
+// health check endpoint
 app.get("/health", (req: Request, res: Response) => {
     res.status(200).send("OK");
 });
